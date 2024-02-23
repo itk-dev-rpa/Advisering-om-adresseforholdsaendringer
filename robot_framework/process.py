@@ -28,6 +28,8 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
     send_email(wb, orchestrator_connection)
 
+    clear_email_folder(orchestrator_connection)
+
 
 def get_email_attachment(orchestrator_connection: OrchestratorConnection) -> BytesIO:
     """Find the email in the "AKBO" email folder and get the attached Excel file.
@@ -217,6 +219,20 @@ def send_email(wb: openpyxl.Workbook, orchestrator_connection: OrchestratorConne
     with smtplib.SMTP(config.SMTP_SERVER, config.SMTP_PORT) as smtp:
         smtp.starttls()
         smtp.send_message(msg)
+
+
+def clear_email_folder(orchestrator_connection: OrchestratorConnection):
+    """Clear the AKBO email folder
+
+    Args:
+        orchestrator_connection: The connection to Orchestrator.
+    """
+    graph_creds = orchestrator_connection.get_credential(config.GRAPH_API)
+    graph_access = authentication.authorize_by_username_password(graph_creds.username, **json.loads(graph_creds.password))
+
+    emails = mail.get_emails_from_folder("itk-rpa@mkb.aarhus.dk", "Indbakke/AKBO", graph_access)
+    for email in emails:
+        mail.delete_email(email, graph_access)
 
 
 if __name__ == '__main__':
