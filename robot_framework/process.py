@@ -74,18 +74,20 @@ def read_excel_file(excel_file: BytesIO) -> openpyxl.Workbook:
 
     # Check column names and get indices
     columns = [c.value for c in ws[1]]
-    columns.index('CPR')
-    columns.index('Beløb')
+    if 'CPR' not in columns or 'Beløb' not in columns:
+        raise ValueError("Missing columns")
+
     udbetalingsdato_index = columns.index('Udbetalingsdato') + 1
     aftaletype_index = columns.index('Aftale type') + 1
     rim_index = columns.index('RIM aftaletype') + 1
+
+    current_date = datetime.now()
 
     # Iterate rows backwards to delete as we go
     for row_index in range(ws.max_row, 1, -1):
         aftaletype = ws.cell(row_index, aftaletype_index).value
         rim = ws.cell(row_index, rim_index).value
         dato = ws.cell(row_index, udbetalingsdato_index).value
-        current_date = datetime.now()
 
         # Delete where aftaletype is not blank
         # or rim aftaletype is IN
