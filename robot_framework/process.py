@@ -118,7 +118,7 @@ def get_address_changes(wb: openpyxl.Workbook):
     cpr_index = columns.index('CPR') + 1
 
     # Get dates from database
-    conn = pyodbc.connect('DSN=Datavarehuset')
+    conn = pyodbc.connect('Server=FaellesSQL;Database=DWH;Trusted_Connection=yes;Driver={ODBC Driver 17 for SQL Server}')
     cursor = conn.cursor()
 
     # Get change date and write result to Excel file
