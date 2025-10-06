@@ -12,6 +12,7 @@ from itk_dev_shared_components.graph import authentication, mail
 import openpyxl
 from openpyxl.worksheet.worksheet import Worksheet
 import pyodbc
+import itk_dev_event_log
 
 from robot_framework import config
 
@@ -19,13 +20,20 @@ from robot_framework import config
 def process(orchestrator_connection: OrchestratorConnection) -> None:
     """Do the primary process of the robot."""
     orchestrator_connection.log_trace("Running process.")
+    event_log = orchestrator_connection.get_constant("Event Log")
+    itk_dev_event_log.setup_logging(event_log.value)
 
     excel_file = get_email_attachment(orchestrator_connection)
     wb = read_excel_file(excel_file)
+    initial_rows = wb.active.max_row
 
     get_address_changes(wb)
-    calculate_difference(wb)
 
+    calculate_difference(wb)
+    persistent_rows = wb.active.max_row
+
+    itk_dev_event_log.emit(orchestrator_connection.process_name, "Updated address.", initial_rows)
+    itk_dev_event_log.emit(orchestrator_connection.process_name, "Removed address.", initial_rows-persistent_rows)
     send_email(wb, orchestrator_connection)
 
     clear_email_folder(orchestrator_connection)
@@ -57,6 +65,7 @@ def get_email_attachment(orchestrator_connection: OrchestratorConnection) -> Byt
     if not attachments[0].name.endswith(".XLSX"):
         raise ValueError(f"Unexpected attachment found: {attachments[0].name}")
 
+    itk_dev_event_log.emit(orchestrator_connection.process_name, "Read email.")
     return mail.get_attachment_data(attachments[0], graph_access)
 
 
