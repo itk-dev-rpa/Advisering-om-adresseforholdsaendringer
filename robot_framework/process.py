@@ -1,6 +1,5 @@
 """This module contains the main process of the robot."""
 
-import os
 import json
 from io import BytesIO
 from datetime import datetime
@@ -235,10 +234,3 @@ def clear_email_folder(orchestrator_connection: OrchestratorConnection):
     emails = mail.get_emails_from_folder("itk-rpa@mkb.aarhus.dk", "Indbakke/AKBO", graph_access)
     for email in emails:
         mail.delete_email(email, graph_access)
-
-
-if __name__ == '__main__':
-    conn_string = os.getenv("OpenOrchestratorConnString")
-    crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Akbo Test", conn_string, crypto_key, "ghbm@aarhus.dk,itk-rpa@mkb.aarhus.dk")
-    process(oc)
